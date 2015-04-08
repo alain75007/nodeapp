@@ -5,6 +5,7 @@ var Group = require('./group.model');
 
 // Get list of groups
 exports.index = function(req, res) {
+  console.log('xxx User Id is ' + req.params._id);
   Group.find(function (err, groups) {
     if(err) { return handleError(res, err); }
     return res.json(200, groups);
