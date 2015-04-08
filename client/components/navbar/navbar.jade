@@ -26,6 +26,13 @@ div.navbar.navbar-default.navbar-static-top(ng-controller='NavbarCtrl')
         li(ng-show='isLoggedIn()')
           p.navbar-text Hello {{ getCurrentUser().name }}
 
+        li(ng-show='isLoggedIn()', ng-class='{active: isActive("/group")}')
+          a(href='/group')
+            span.glyphicon.glyphicon-plus-sign
+
+        li(ng-show='isLoggedIn()', ng-class='{active: isActive("/group")}')
+          a(href='/group') Group
+
         li(ng-show='isLoggedIn()', ng-class='{active: isActive("/settings")}')
           a(href='/settings')
             span.glyphicon.glyphicon-cog
