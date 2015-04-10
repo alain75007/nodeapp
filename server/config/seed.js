@@ -53,10 +53,14 @@ User.find({}).remove(function() {
       Group.find({}).remove(function() {
          Group.create({
            _creator: user._id,
-           name: "Group de test 1"
+           name: "Group de test 1",
+           emails: [],
+           users: []
            }, {
            _creator: user._id,
-           name: "Group de test 2"
+           name: "Group de test 2",
+           emails: [],
+           users: []
           }
           )});
     }
