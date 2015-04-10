@@ -3,5 +3,7 @@ div(ng-include='"components/navbar/navbar.html"')
     | This is the group view.
     ul
       li(ng-repeat="group in groups")
-        {{ group.name }}
+        a(ui-sref='group_show({groupId: group._id})')
+          | {{ group.name }}
+
 div(ng-include='"components/footer/footer.html"')
