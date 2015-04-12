@@ -16,7 +16,14 @@ exports.register = function(socket) {
 }
 
 function onSave(socket, doc, cb) {
-  socket.emit('message:save', doc);
+  doc
+  .populate('_creator', '_id name', function(err, doc) { 
+    var tag = '/groups/' + doc.group + '/messages:save';
+    socket.emit(tag, doc);
+    console.log('emit to ' + tag);
+    console.log(doc);
+  });
+  //socket.emit('message:save', doc);
 }
 
 function onRemove(socket, doc, cb) {

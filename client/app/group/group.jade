@@ -1,9 +1,9 @@
 div(ng-include='"components/navbar/navbar.html"')
 .col-md-12
-    | This is the group view.
+    | This is the messages view.
     ul
       li(ng-repeat="group in groups")
-        a(ui-sref='group_show({groupId: group._id})')
+        a(ui-sref='group_messages({groupId: group._id})')
           | {{ group.name }}
 
 div(ng-include='"components/footer/footer.html"')

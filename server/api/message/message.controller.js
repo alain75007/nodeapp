@@ -5,7 +5,10 @@ var Message = require('./message.model');
 
 // Get list of messages
 exports.index = function(req, res) {
-  Message.find(function (err, messages) {
+  //Message.find(function (err, messages) {
+  Message.find({group: req.params.groupId})
+  .populate('_creator', '_id name')
+  .exec(function (err, messages) {
     if(err) { return handleError(res, err); }
     return res.json(200, messages);
   });
@@ -22,6 +25,7 @@ exports.show = function(req, res) {
 
 // Creates a new message in the DB.
 exports.create = function(req, res) {
+  req.body._creator = req.user._id;
   Message.create(req.body, function(err, message) {
     if(err) { return handleError(res, err); }
     return res.json(201, message);

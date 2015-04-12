@@ -8,6 +8,7 @@
 var Thing = require('../api/thing/thing.model');
 var User = require('../api/user/user.model');
 var Group = require('../api/group/group.model');
+var Message = require('../api/message/message.model');
 
 Thing.find({}).remove(function() {
   Thing.create({
@@ -44,25 +45,44 @@ User.find({}).remove(function() {
   );
   User.create({
     provider: 'local',
+    role: 'test2',
+    name: 'Test2',
+    email: 'test2@test2.com',
+    password: 'test2'
+  })
+  .then(function(user) {
+      console.log('finished populating user test2');
+  })
+  User.create({
+    provider: 'local',
     name: 'Test User',
     email: 'test@test.com',
     password: 'test'
   },  function(err, user) {
-      console.log('finished populating user test');
-      console.log('UserId ' + user._id);
-      Group.find({}).remove(function() {
-         Group.create({
-           _creator: user._id,
-           name: "Group de test 1",
-           emails: [],
-           users: []
-           }, {
-           _creator: user._id,
-           name: "Group de test 2",
-           emails: [],
-           users: []
-          }
-          )});
-    }
-  )});
+    console.log('finished populating user test');
+    console.log('UserId ' + user._id);
+    Group.find({}).remove(function() {
+
+      console.log('Create group de test 1');
+      Group.create({
+        _creator: user._id,
+        name: "Group de test 1",
+        emails: [],
+        users: []
+      }, function(err, group) {
+        Message.find({}).remove(function() {
+          console.log('message group is ' + group._id  + ' creator is ' + user._id);
+          Message.create({group: group, content: 'Message 1', _creator: user});
+          Message.create({group: group, content: 'Message 2', _creator: user});
+        });
+      });
+      Group.create({
+        _creator: user._id,
+        name: "Group de test 2",
+        emails: [],
+        users: []
+      })
+    })
+  });
+});
 

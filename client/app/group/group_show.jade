@@ -2,12 +2,14 @@ div(ng-include='"components/navbar/navbar.html"')
 .container
   .row
     .col-md-12
-        | This is the group view.
-        form(name='form', ng-submit='groupAdd(form)')
-          input(ng-model="form.name", type="text", placeholder="Group name")
-          br
-          br
-          textarea(ng-model="form.emails", type="text", ng-list=";", placeholder="Emails")
-          br
-          input(type="submit")
-    div(ng-include='"components/footer/footer.html"')
+      h1 
+        | {{ group.name }}
+      h2 Messages:
+      ul
+        li(ng-repeat="message in messages")
+          {{message._creator.name}} : {{ message.content }}
+      form(name='form', ng-submit='messageAdd(form)')
+        input(ng-model="form.content", type="text", placeholder="Message")
+        input(type="submit")
+div(ng-include='"components/footer/footer.html"')
+
