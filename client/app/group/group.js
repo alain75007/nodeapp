@@ -7,6 +7,7 @@ angular.module('myappApp')
         url: '/group',
         templateUrl: 'app/group/group.html',
         controller: 'GroupCtrl',
+        authenticate: true,
         resolve: {
           groups: function(groupResource) {
             return groupResource.query().$promise;
@@ -16,6 +17,7 @@ angular.module('myappApp')
       .state('group_new', {
         url: '/group/new',
         templateUrl: 'app/group/group_new.html',
+        authenticate: true,
         controller: function($scope, $state, groupResource) {
           $scope.groupAdd = function(form) {
              groupResource.save({name: form.name, emails: form.emails}).$promise
@@ -29,6 +31,7 @@ angular.module('myappApp')
       .state('group_messages', {
         url: '/group/:groupId/messages',
         templateUrl: 'app/group/group_show.html',
+        authenticate: true,
         controller: function($scope, $state, socket, group, messageResource, messages) {
           $scope.group = group;
           $scope.messages = messages; 
