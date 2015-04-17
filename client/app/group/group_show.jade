@@ -7,7 +7,7 @@ div(ng-include='"components/navbar/navbar.html"')
       h2 Messages:
       ul
         li(ng-repeat="message in messages")
-          {{message._creator.name}} : {{ message.content }}
+          | {{message._creator.name}} : {{ message.content }}
       form(name='form', ng-submit='messageAdd(form)')
         input(ng-model="form.content", type="text", placeholder="Message")
         input(type="submit")
