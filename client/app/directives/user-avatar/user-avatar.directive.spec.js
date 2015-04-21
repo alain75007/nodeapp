@@ -18,7 +18,6 @@ describe('Directive: userAvatar', function () {
     scope.$digest();
 
     expect(element.attr('src')).toBe('//gravatar.com/avatar/c3577dd0bea553f1443833509fc6a1a3?d=identicon');
-    //expect(element.text()).toBe('this is the userAvatar directive');
   }));
 
   it('should display avatar image of 40px', inject(function ($compile) {
@@ -27,6 +26,5 @@ describe('Directive: userAvatar', function () {
     scope.$digest();
 
     expect(element.attr('src')).toBe('//gravatar.com/avatar/c3577dd0bea553f1443833509fc6a1a3?d=identicon&s=40');
-    //expect(element.text()).toBe('this is the userAvatar directive');
   }));
 });
