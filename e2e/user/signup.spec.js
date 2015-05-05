@@ -13,7 +13,7 @@ describe('Main View', function() {
     page.email.sendKeys('alain@itipic.com');
     page.password.sendKeys('password');
     page.goButton.click().then(function() {
-         browser.waitForAngular();
+      browser.waitForAngular();
          expect(browser.getLocationAbsUrl()).toBe('/');
     });
   });
