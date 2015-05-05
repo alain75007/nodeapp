@@ -11,6 +11,7 @@ var MainPage = function() {
   this.email = element(by.model('user.email'));
   this.password = element(by.model('user.password'));
   this.goButton = element(by.css('.btn-login'));
+  this.userName = element(by.css('.username'));
 
 };
 
