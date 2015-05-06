@@ -1,5 +1,5 @@
 'use strict';
-
+//TODO on post create verify group for emails
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 var crypto = require('crypto');
@@ -139,8 +139,7 @@ UserSchema.methods = {
    * @api public
    */
   encryptPassword: function(password) {
-    if (!password || !this.salt) return '';
-    var salt = new Buffer(this.salt, 'base64');
+    if (!password || !this.salt) return ''; var salt = new Buffer(this.salt, 'base64');
     return crypto.pbkdf2Sync(password, salt, 10000, 64).toString('base64');
   }
 };

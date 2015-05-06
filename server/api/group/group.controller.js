@@ -22,7 +22,6 @@ exports.show = function(req, res) {
 
 // Creates a new group in the DB.
 exports.create = function(req, res) {
-  console.log('xxxxxxxxxxxxxxxxx');
   req.body._creator = req.user._id;
   Group.create(req.body, function(err, group) {
     if(err) { return handleError(res, err); }
@@ -49,7 +48,7 @@ exports.destroy = function(req, res) {
   Group.findById(req.params.id, function (err, group) {
     if(err) { return handleError(res, err); }
     if(!group) { return res.send(404); }
-    group.remove(function(err) {
+    group.removeUser(req.user, function(err) {
       if(err) { return handleError(res, err); }
       return res.send(204);
     });
