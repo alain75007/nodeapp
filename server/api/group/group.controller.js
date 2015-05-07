@@ -55,6 +55,20 @@ exports.destroy = function(req, res) {
   });
 };
 
+// Deletes a group from the DB.
+exports.addEmails = function(req, res) {
+  Group.findById(req.params.id, function (err, group) {
+    if(err) { return handleError(res, err); }
+    if(!group) { return res.send(404); }
+    if (group._creator.toString() !== req.user._id.toString()) { return res.send(403, new Error('Only creator can do this')); }
+    if (!req.body.emails) return res.send(422, 'No emails given');
+    group.addEmails(req.body.emails, function(err, group) {
+      if(err) { return handleError(res, err); }
+      return res.send(201, group);
+    });
+  });
+};
+
 function handleError(res, err) {
   return res.send(500, err);
 }

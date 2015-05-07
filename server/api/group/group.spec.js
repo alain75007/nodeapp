@@ -1,24 +1,10 @@
-'use strict';
-
-var should = require('should');
-var app = require('../../app');
-var User = require('../user/user.model');
-var Group = require('./group.model');
-var async = require('async');
-var _ = require('lodash');
-
-var request = require('supertest');
-var userFixture = require('../user/user.fixtures');
-
-var users;
-var user;
-var token;
-var group;
+'use strict'; var should = require('should'); var app = require('../../app'); var User = require('../user/user.model'); var Group = require('./group.model'); var async = require('async'); var _ = require('lodash'); var request = require('supertest'); var userFixture = require('../user/user.fixtures'); var users; var user; var token; var group;
 
 
-function login(done) {
+function login(done, userIndex) {
     users = userFixture.getUsers();
-    user = users[0];
+    userIndex = userIndex || 0;
+    user = users[userIndex];
     request(app)
     .post('/auth/local')
     .send({ email: user.email, password: user.password })
@@ -29,7 +15,6 @@ function login(done) {
       done();
     });
 }
-
   before(function(done) { 
     userFixture.createUsers(done);
   });
@@ -37,7 +22,7 @@ function login(done) {
     login(done);
   });
 
-describe('POST /api/groups', function() {
+describe('POST /api/groups (add group)', function() {
 
   it('should respond with a correct JSON object', function(done) {
     request(app)
@@ -110,10 +95,14 @@ describe('POST /api/groups', function() {
       done();
     });
   });
+
+
+
+
 });
 
 
-describe('DELETE /api/groups/nnn', function() {
+describe('DELETE /api/groups/nnn (delete group)', function() {
 
   it('should delete user from group user list', function(done) {
     request(app)
@@ -135,7 +124,6 @@ describe('DELETE /api/groups/nnn', function() {
           if (err) return done(err, 'Group not found!!!');
           var index = group2.users.indexOf(user._id);
           index.should.be.equal(-1, 'User still in group ');
-          // TODO verify group model
           done();
         });
       });
@@ -178,8 +166,98 @@ describe('DELETE /api/groups/nnn', function() {
   });
 });
 
-describe('GET /api/groups', function() {
+describe('POST /api/groups/nnn/emails', function() {
+  it('should respond with 403 if not the creator', function(done) {
+    var data = {
+      _creator: users[1]._id,
+      name: 'Test',
+      emails: [users[0].email]
+    };
+    Group.create(data, function(err, group) {
+      if(err) done(err);
+      request(app)
+      .post('/api/groups/' + group._id + '/emails')
+      .send({emails: ['nobody@nobody.com']})
+      .set('Authorization', 'Bearer ' + token)
+      .expect(403)
+      .end(function(err, res) {
+        if (err) return done(err);
+        done();
+      })
+    });
+  });
 
+  it('should respond with error if no emails', function(done) {
+    var data = {
+      _creator: user._id,
+      name: 'Test',
+      emails: ['titi@titi.com']
+    };
+    Group.create(data, function(err, group) {
+      if(err) done(err);
+      request(app)
+      .post('/api/groups/' + group._id + '/emails')
+      //.send({emails: ['nobody@nobody.com']})
+      .set('Authorization', 'Bearer ' + token)
+      .expect(422)
+      .end(function(err, res) {
+        if (err) return done(err);
+        done();
+      })
+    });
+  });
+
+  it('should add users to empty users array', function(done) {
+    var data = {
+      _creator: user._id,
+      name: 'Test333',
+      emails: ['titi@titi.com', users[1].email, 'toto@toto.com']
+    };
+    Group.create(data, function(err, group) {
+      if(err) done(err);
+       group.emails.length.should.be.equal(2, 'wrong emails number after creation');
+       group.users.length.should.be.equal(2, 'wrong users number after creation');
+      request(app)
+      .post('/api/groups/' + group._id + '/emails')
+      .send({emails: ['nobody@nobody.com', 'titi@titi.com', users[1].email]})
+      .set('Authorization', 'Bearer ' + token)
+      .expect(201)
+      .end(function(err, res) {
+        if (err) return done(err);
+        res.body.emails.length.should.be.equal(3, 'wrong emails number');
+        res.body.users.length.should.be.equal(2, 'wrong users number');
+        done();
+      })
+    });
+  });
+
+  it('should add users to previous users', function(done) {
+    var data = {
+      _creator: user._id,
+      name: 'Test',
+      emails: ['titi@titi.com', users[1].email, 'toto@toto.com']
+    };
+    Group.create(data, function(err, group) {
+      if(err) done(err);
+       group.emails.length.should.be.equal(2, 'wrong emails number');
+       group.users.length.should.be.equal(2, 'wrong users number');
+      request(app)
+      .post('/api/groups/' + group._id + '/emails')
+      .send({emails: ['nobody@nobody.com', 'titi@titi.com', users[1].email]})
+      .set('Authorization', 'Bearer ' + token)
+      .expect(201)
+      .end(function(err, res) {
+        if (err) return done(err);
+        res.body.emails.length.should.be.equal(3, 'wrong emails number');
+        res.body.users.length.should.be.equal(2, 'wrong users number');
+        done();
+      })
+    });
+  });
+});
+
+describe('GET /api/groups (list group)', function() {
+  
   it('should respond with JSON array', function(done) {
     request(app)
     .get('/api/groups')
