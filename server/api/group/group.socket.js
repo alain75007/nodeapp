@@ -6,7 +6,7 @@
 
 var Group = require('./group.model');
 
-exports.register = function(socket) {
+exports.register = function(socket) { 
   Group.schema.post('save', function (doc) {
     onSave(socket, doc);
   });
@@ -19,7 +19,6 @@ function onSave(socket, doc, cb) {
   for(var i=0; i < doc.users.length; i++) {
     var user_id = doc.users[i];
     var tag = 'group_' + user_id + ':save';
-    console.log('emit to ' + tag)
     socket.emit(tag, doc);
   }
   //socket.emit('group:save', doc);

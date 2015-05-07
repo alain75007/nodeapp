@@ -42,3 +42,15 @@ exports.createUsers = function(done) {
 exports.getUsers = function() {
   return users;
 };
+exports.createUser = function(email, callback) {
+    var user = {
+        provider: 'local',
+        name: 'Fake User ' + email,
+        email: email,
+        password: 'password'
+    };
+    User.create(user, function(err, user) {
+      if ( err ) return callback(err);
+      callback(null, user);
+    });
+};

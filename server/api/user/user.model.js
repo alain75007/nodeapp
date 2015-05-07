@@ -144,4 +144,13 @@ UserSchema.methods = {
   }
 };
 
+UserSchema.pre('save', function(next) {
+   var Group = require('../group/group.model');
+
+   if (this.isNew) {
+     Group.update({emails: this.email}, {$push: {users: this._id}, $pullAll: {emails: [this.email]}}, {multi: true}).exec(function(err, nb, result) { 
+       next();
+     });
+   }
+});
 module.exports = mongoose.model('User', UserSchema);

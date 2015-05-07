@@ -54,6 +54,7 @@ module.exports = function (socketio) {
 
     // Call onConnect.
     onConnect(socket);
+    debugger;
     console.info('[%s] CONNECTED', socket.address);
   });
 };

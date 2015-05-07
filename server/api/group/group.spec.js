@@ -1,5 +1,55 @@
-'use strict'; var should = require('should'); var app = require('../../app'); var User = require('../user/user.model'); var Group = require('./group.model'); var async = require('async'); var _ = require('lodash'); var request = require('supertest'); var userFixture = require('../user/user.fixtures'); var users; var user; var token; var group;
+'use strict'; 
+var should = require('should');
+var app = require('../../app');
+var User = require('../user/user.model');
+var Group = require('./group.model');
+var async = require('async');
+var mongoose = require('mongoose');
+var _ = require('lodash');
 
+var io = require('socket.io-client');
+var options ={
+  transports: ['websocket'],
+  'force new connection': true,
+  path: '/socket.io-client'
+};
+
+var request = require('supertest');
+var userFixture = require('../user/user.fixtures');
+var users;
+var user;
+var token;
+var group;
+
+function connectUser(user, callback) {
+  user.client = io.connect('http://localhost:9000', options)
+    .on('connect', function(a, b) {
+      return callback(null, user);
+    })
+    .on('connect_error', function(err, b) {
+      return callback(err);
+    })
+    .on('connect_timeout', function(err, b) {
+      return callback(err);
+    });
+}
+
+function connectUsers(done) {
+    async.parallel([ // tableau de fonctions à exécuter en parallèle
+      function(callback) {
+        connectUser(users[0],callback);
+      },
+      function(callback) {
+        connectUser(users[1],callback);
+      }
+    ],
+    function(err, result) {
+      // Fonction appelée quand founction1 et founction 2 sont toutes les deux terminées 
+      //var users = result; // contient {user, user}
+      users = result;
+      done(err);
+    });
+}
 
 function login(done, userIndex) {
     users = userFixture.getUsers();
@@ -18,8 +68,12 @@ function login(done, userIndex) {
   before(function(done) { 
     userFixture.createUsers(done);
   });
+
   before(function(done) { 
     login(done);
+  });
+  before(function(done) { 
+    connectUsers(done);
   });
 
 describe('POST /api/groups (add group)', function() {
@@ -96,10 +150,44 @@ describe('POST /api/groups (add group)', function() {
     });
   });
 
+  it('should send new group by sockedio to group subscriber users', function(done) {
+    var data = {
+      _creator: user._id,
+      name: 'Test post group socketio',
+      emails: ['titi@titi.com', users[1].email, 'toto@toto.com']
+    };
 
+    var checkMessage = function(user, callback) {
+      var tag = 'group_' + user._id + ':save';
+      user.client.on(tag, function(msg){
+        data._creator.toString().should.equal(msg._creator);
+        data.name.should.equal(msg.name);
+        user.client.disconnect();
+        return callback(null);
+      });
+    };
 
+    var checkMessages = function(done) {
+      async.parallel([
+        function(callback) {
+          checkMessage(users[0], callback);
+        },
+        function(callback) {
+          checkMessage(users[1], callback);
+        }],
+        function(err, result) {
+          done(err);
+        }
+      );
+    }
+    checkMessages(done);
+    Group.create(data, function(err, group) {
+      if(err) done(err);
+    });
 
+ });
 });
+
 
 
 describe('DELETE /api/groups/nnn (delete group)', function() {
@@ -279,5 +367,40 @@ describe('GET /api/groups (list group)', function() {
         if (err) return done(err);
         done();
       });
+  });
+});
+
+describe('User.create', function() {
+
+  var newEmail = 'cccc@cccc.com';
+
+  before(function(done) {
+    User.findOne({email: newEmail}, function(err, user) {
+      if (err) return done(err);
+      if (!user) return done();
+      user.remove(function(err, user) {
+        done(err);
+      });
+    });
+  });
+  
+  it('should update group where user is email subscriber', function(done) {
+    var data = {
+      _creator: user._id,
+      name: 'Test',
+      emails: ['titi@titi.com', users[1].email, newEmail]
+    };
+    Group.create(data, function(err, group) {
+      if(err) done(err);
+      userFixture.createUser(newEmail, function(err, user) {
+        Group.findOne({_id: group._id, users: mongoose.Types.ObjectId(user._id)}).exec(function(err, group) {
+          if (err) return done(err);
+          (!!group).should.be.equal(true, 'User not add in group ');
+          group.emails.indexOf(newEmail).should.be.equal(-1, 'Email not deleted');
+          group.emails.indexOf(newEmail).should.be.equal(-1, 'Email not deleted');
+          done();
+        });
+      });
+    });
   });
 });
