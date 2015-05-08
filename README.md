@@ -3,18 +3,13 @@
 Main Mean application 
 ---
 
-To use it, simply:
-
-* Type Markdown text in the left pane
-* See the HTML in the right
-
-**WriteMe.md** also supports GitHub-style syntax highlighting for numerous languages, like so:
-
 # Installation
 
-### mongodb
+### prerequisite
+#### mongodb
 
-### Development environment
+
+## Development environment
 ```bash
 sudo npm install -g bower grunt-cli jade coffee karma-cli node-inspector supervisor
 sudo npm install -g yo yo-angular-fullstack
