@@ -3,6 +3,7 @@ var should = require('should');
 var app = require('../../app');
 var User = require('../user/user.model');
 var Group = require('./group.model');
+var Subscriber = require('./subscriber/subscriber.model');
 var async = require('async');
 var mongoose = require('mongoose');
 var _ = require('lodash');
@@ -93,34 +94,15 @@ describe('POST /api/groups (add group)', function() {
       res.body.emails.length.should.be.equal(1, 'wrong emails number');
       res.body.emails[0].should.be.equal('toto@toto.com');
       res.body._creator.should.be.equal(user._id.toString());
-      res.body.users.indexOf(users[0]._id.toString()).should.not.be.equal(-1);
-      res.body.users.indexOf(users[1]._id.toString()).should.not.be.equal(-1);
-      res.body.users.length.should.be.equal(2, 'wrong users number');
-      async.parallel([ // tableau de fonctions à exécuter en parallèle
-        function(callback) {
-          // Fonction 1
-          var user = User.findOne({_id: res.body.users[1]}, function(err, user) {
-            if ( err ) return done(err);
-            should.not.exist(err, 'user not found in users');
-            should.exist(user, 'user not found in database');
-            callback(null, user);
-          })
-        },
-        function(callback) {
-          // Fonction 2
-          var user = User.findOne({_id: res.body.users[0]}, function(err, user) {
-            if ( err ) return done(err);
-            should.not.exist(err, 'creator not found in users');
-            should.exist(user, 'creator not found in database');
-            callback(null, user);
-          })
-        }],
-        function(err, result) {
-          // Fonction appelée quand founction1 et founction 2 sont toutes les deux terminées 
-          var users = result; // contient {user, user}
-          done(err);
-        }
-      );
+
+      Subscriber.find({group_id: group._id}, function(err, subscribers) {
+        if ( err ) return done(err);
+        subscribers.length.should.be.equal(3, 'wrong number of subscribers');
+        should.exist(_.findWhere(subscribers, {user_id: users[0]}), 'user0 not found');
+        should.exist(_.findWhere(subscribers, {user_id: users[1]}), 'user1 not found');
+        should.exist(_.findWhere(subscribers, {email: users[0]}), 'user0 not found');
+        done();
+      });
     });
   });
 
@@ -150,7 +132,7 @@ describe('POST /api/groups (add group)', function() {
     });
   });
 
-  it('should send new group by sockedio to group subscriber users', function(done) {
+  it('should send new group to subscriber users (socketio)', function(done) {
     var data = {
       _creator: user._id,
       name: 'Test post group socketio',
@@ -184,8 +166,7 @@ describe('POST /api/groups (add group)', function() {
     Group.create(data, function(err, group) {
       if(err) done(err);
     });
-
- });
+  });
 });
 
 
@@ -250,6 +231,45 @@ describe('DELETE /api/groups/nnn (delete group)', function() {
     .end(function(err, res) {
       if (err) return done(err);
       done();
+    });
+  });
+
+  it('should notify group subscribers if user deleted (socketio)', function(done) {
+    var data = {
+      _creator: user._id,
+      name: 'Test post group socketio',
+      emails: ['titi@titi.com', users[1].email, 'toto@toto.com']
+    };
+
+    var checkMessage = function(user, action, callback) {
+      var tag = 'group_' + user._id + ':' + action;
+      user.client.on(tag, function(msg){
+        debugger;
+        data._creator.toString().should.equal(msg._creator);
+        data.name.should.equal(msg.name);
+        user.client.disconnect();
+        return callback(null);
+      });
+    };
+
+    var checkMessages = function(done) {
+      async.parallel([
+        function(callback) {
+          checkMessage(users[0], 'remove', callback);
+          // TODO check remove
+        },
+        function(callback) {
+          checkMessage(users[1], 'save', callback);
+          // TODO check save 
+        }],
+        function(err, result) {
+          done(err);
+        }
+      );
+    }
+    Group.create(data, function(err, group) {
+      if(err) done(err);
+      checkMessages(done);
     });
   });
 });
