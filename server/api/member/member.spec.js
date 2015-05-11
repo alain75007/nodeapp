@@ -4,6 +4,12 @@ var should = require('should');
 var app = require('../../app');
 var request = require('supertest');
 
+var userFixture = require('../user/user.fixtures');
+var users;
+var user;
+var token;
+var group;
+
 describe('GET /api/members', function() {
 
   it('should respond with JSON array', function(done) {

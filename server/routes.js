@@ -9,7 +9,7 @@ var errors = require('./components/errors');
 module.exports = function(app) {
 
   // Insert routes below
-  // app.use('/api/members', require('./api/member'));
+  app.use('/api/groups/:groupId/members', require('./api/member'));
   app.use('/api/messages', require('./api/message'));
   app.use('/api/groups', require('./api/group'));
   app.use('/api/things', require('./api/thing'));
@@ -24,6 +24,7 @@ module.exports = function(app) {
   // All other routes should redirect to the index.html
   app.route('/*')
     .get(function(req, res) {
+      console.log('zzzzz ' + req.url);
       res.sendfile(app.get('appPath') + '/index.html');
     });
 };

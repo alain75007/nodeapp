@@ -5,6 +5,7 @@ var Member = require('./member.model');
 
 // Get list of members
 exports.index = function(req, res) {
+  console.log('kkkkkkkkkkkkkkkkkkkkkkk');
   Member.find(function (err, members) {
     if(err) { return handleError(res, err); }
     return res.json(200, members);
